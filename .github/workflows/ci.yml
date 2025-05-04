@@ -30,7 +30,8 @@ jobs:
           useConfigFile: true
 
       - name: Display Version
-        run: echo "GitVersion: ${{ steps.gitversion.outputs.nuGetVersionV2 }}"
+        run: | 
+          echo "GitVersion: ${{ steps.gitversion.outputs.nuGetVersionV2 }}"
 
       - name: Restore
         run: dotnet restore src/test.sln
