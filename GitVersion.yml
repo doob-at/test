@@ -1,29 +1,27 @@
-mode: Mainline
+mode: ContinuousDeployment       # ← Mainline ersetzt!
 
 branches:
   main:
     regex: ^main$
     increment: Minor
-    is-mainline: true
     track-merge-target: false
-    prevent-increment-of-merged-branch-version: true
 
   feature:
-    regex: ^(features?|feature)[/-]
-    tag: useBranchName
+    regex: ^(?:features?|feature)[/-](?<BranchName>.*)$
+    label: "{BranchName}"      # ← ohne Hochkomma!
     increment: Patch
 
   pull-request:
-    tag: pr
+    label: pr
 
   hotfix:
     regex: ^hotfix(es)?[/-]
-    tag: hotfix
+    label: hotfix
     increment: Patch
 
   release:
     regex: ^releases?[/-]
-    tag: rc
+    label: rc
     increment: Patch
 
 ignore:
