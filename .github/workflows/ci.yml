@@ -2,66 +2,54 @@ name: CI Check
 
 on:
   pull_request:
-    branches: [main]
+    branches: [main]      # feuert bei PR‑Ziel „main“
+  workflow_dispatch:      # manueller Start
 
 env:
-  OUTPUT_DIR: output          # Verzeichnis für die .nupkg‑Dateien
+  OUTPUT_DIR: output      # hier landen die .nupkg
 
 jobs:
   test:
     runs-on: ubuntu-latest
 
     steps:
-      # --- Checkout ---------------------------------------------------------
-      - name: Checkout
-        uses: actions/checkout@v4
+      # Checkout
+      - uses: actions/checkout@v4
         with:
-          fetch-depth: 0       # wichtig für GitVersion!
+          fetch-depth: 0   # wichtig für GitVersion!
 
-      # --- .NET SDK ---------------------------------------------------------
-      - name: Setup .NET
-        uses: actions/setup-dotnet@v4
+      # .NET SDK
+      - uses: actions/setup-dotnet@v4
         with:
-          dotnet-version: '8.0.x'
+          dotnet-version: 8.0.x
 
-      # --- GitVersion -------------------------------------------------------
-      - name: Install GitVersion
-        uses: gittools/actions/gitversion/setup@v3.2.1
+      # GitVersion
+      - uses: gittools/actions/gitversion/setup@v3.2.1
         with:
-          versionSpec: '6.3.x'
+          versionSpec: 6.3.x
 
-      - name: Run GitVersion
-        id: gitversion
+      - id: gitversion
         uses: gittools/actions/gitversion/execute@v3.2.1
         with:
-          useConfigFile: true   # liest deine GitVersion.yml
+          useConfigFile: true
 
-      - name: Display Version
-        run: echo "GitVersion: ${{ steps.gitversion.outputs.fullSemVer }}"
+      - run: echo "Version ⇒ ${{ steps.gitversion.outputs.fullSemVer }}"
 
-      # --- Restore / Build / Test -------------------------------------------
-      - name: Restore
-        run: dotnet restore src/test.sln
+      # Restore / Build / Test
+      - run: dotnet restore src/test.sln
+      - run: dotnet build  src/test.sln -c Release --no-restore \
+             /p:Version=${{ steps.gitversion.outputs.fullSemVer }}
+      - run: dotnet test   src/test.sln -c Release --no-build
 
-      - name: Build
-        run: |
-          dotnet build src/test.sln -c Release --no-restore \
-            /p:Version=${{ steps.gitversion.outputs.fullSemVer }}
-
-      - name: Test
-        run: dotnet test src/test.sln -c Release --no-build
-
-      # --- Pack Preview‑Package ---------------------------------------------
-      - name: Pack preview NuPkg
-        run: |
-          mkdir -p ${{ env.OUTPUT_DIR }}
+      # Pack Vorschau‑NuGet
+      - run: |
+          mkdir -p $OUTPUT_DIR
           dotnet pack src/test.sln -c Release --no-build \
-            --output ${{ env.OUTPUT_DIR }} \
+            --output $OUTPUT_DIR \
             /p:PackageVersion=${{ steps.gitversion.outputs.fullSemVer }}
 
-      # --- Artefakt‑Upload (Retention 5 Tage) -------------------------------
-      - name: Upload preview NuPkg
-        uses: actions/upload-artifact@v4
+      # Artefakt hochladen (Auto‑Löschung nach 5 Tagen)
+      - uses: actions/upload-artifact@v4
         with:
           name: preview-packages
           path: ${{ env.OUTPUT_DIR }}/*.nupkg
