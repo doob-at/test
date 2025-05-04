@@ -7,11 +7,37 @@ on:
 jobs:
   test:
     runs-on: ubuntu-latest
+
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-dotnet@v4
+        with:
+          fetch-depth: 0  # Wichtig für GitVersion!
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
         with:
           dotnet-version: '8.0.x'
-      - run: dotnet restore src/test.sln
-      - run: dotnet build src/test.sln -c Release --no-restore
-      - run: dotnet test src/test.sln -c Release --no-build
+
+      - name: Install GitVersion
+        uses: gittools/actions/gitversion/setup@v3.2.1
+        with:
+          versionSpec: '6.3.x'
+
+      - name: Run GitVersion
+        id: gitversion
+        uses: gittools/actions/gitversion/execute@v3.2.1
+        with:
+          useConfigFile: true
+
+      - name: Display Version
+        run: echo "GitVersion: ${{ steps.gitversion.outputs.nuGetVersionV2 }}"
+
+      - name: Restore
+        run: dotnet restore src/test.sln
+
+      - name: Build
+        run: dotnet build src/test.sln -c Release --no-restore \
+          /p:Version=${{ steps.gitversion.outputs.nuGetVersionV2 }}
+
+      - name: Test
+        run: dotnet test src/test.sln -c Release --no-build
