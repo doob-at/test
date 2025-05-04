@@ -21,12 +21,12 @@ jobs:
       - name: Setup .NET
         uses: actions/setup-dotnet@v4
         with:
-          dotnet-version: '8.0.x'
+          dotnet-version: "8.0.x"
 
       - name: Install GitVersion
         uses: gittools/actions/gitversion/setup@v3.2.1
         with:
-          versionSpec: '6.3.x'
+          versionSpec: "6.3.x"
 
       - name: Run GitVersion
         id: gitversion
@@ -55,3 +55,11 @@ jobs:
               --api-key "${{ secrets.GITHUB_TOKEN }}" \
               --skip-duplicate
           done
+
+      - name: Upload preview NuPkg
+        uses: actions/upload-artifact@v4
+        with:
+          name: preview-packages
+          path: ${{ env.OUTPUT_DIR }}/*.nupkg
+          retention-days: 5 # nach 5 Tagen wird automatisch gelöscht
+
