@@ -4,6 +4,9 @@ on:
   pull_request:
     branches: [main]
 
+env:
+  OUTPUT_DIR: output
+  
 jobs:
   test:
     runs-on: ubuntu-latest
@@ -42,3 +45,9 @@ jobs:
       - name: Test
         run: dotnet test src/test.sln -c Release --no-build
 
+      - name: Pack preview NuPkg
+        run: |
+          mkdir -p ${{ env.OUTPUT_DIR }}
+          dotnet pack src/test.sln -c Release --no-build \
+            --output ${{ env.OUTPUT_DIR }} \
+            /p:PackageVersion=${{ steps.gitversion.outputs.fullSemVer }}
