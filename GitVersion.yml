@@ -1,0 +1,30 @@
+mode: ContinuousDeployment       # ← Mainline ersetzt!
+
+branches:
+  main:
+    regex: ^main$
+    increment: Minor
+    track-merge-target: false
+
+  feature:
+    regex: ^(?:features?|feature)[/-](?<BranchName>.*)$
+    label: "{BranchName}"      # ← ohne Hochkomma!
+    increment: Patch
+
+  pull-request:
+    label: pr
+
+  hotfix:
+    regex: ^hotfix(es)?[/-]
+    label: hotfix
+    increment: Patch
+
+  release:
+    regex: ^releases?[/-]
+    label: rc
+    increment: Patch
+
+ignore:
+  sha: []
+
+commit-message-incrementing: Enabled

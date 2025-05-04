@@ -11,21 +11,49 @@ env:
 jobs:
   publish:
     runs-on: ubuntu-latest
+
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout Repository
+        uses: actions/checkout@v4
         with:
           fetch-depth: 0
-      - uses: actions/setup-dotnet@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
         with:
-          dotnet-version: '8.0.x'
-      - run: dotnet restore src/test.sln
-      - run: dotnet build src/test.sln -c Release --no-restore
-      - run: mkdir -p ${{ env.OUTPUT_DIR }}
-      - run: dotnet pack src/test.sln -c Release --no-build --output ${{ env.OUTPUT_DIR }}
-      - run: |
+          dotnet-version: "8.0.x"
+
+      - name: Install GitVersion
+        uses: gittools/actions/gitversion/setup@v3.2.1
+        with:
+          versionSpec: "6.3.x"
+
+      - name: Run GitVersion
+        id: gitversion
+        uses: gittools/actions/gitversion/execute@v3.2.1
+        with:
+          useConfigFile: true
+
+      - name: Restore
+        run: dotnet restore src/test.sln
+
+      - name: Build
+        run: dotnet build src/test.sln -c Release --no-restore /p:Version=${{ steps.gitversion.outputs.fullSemVer }}
+
+      - name: Pack
+        run: |
+          mkdir -p ${{ env.OUTPUT_DIR }}
+          dotnet pack src/test.sln -c Release --no-build \
+            --output ${{ env.OUTPUT_DIR }} \
+            /p:Version=${{ steps.gitversion.outputs.fullSemVer }}
+
+      - name: Push to GitHub Packages
+        run: |
           for pkg in ${{ env.OUTPUT_DIR }}/*.nupkg; do
             dotnet nuget push "$pkg" \
               --source "https://nuget.pkg.github.com/${{ github.repository_owner }}/index.json" \
               --api-key "${{ secrets.GITHUB_TOKEN }}" \
               --skip-duplicate
           done
+
+
