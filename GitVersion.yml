@@ -28,3 +28,6 @@ ignore:
   sha: []
 
 commit-message-incrementing: Enabled
+
+next-version: 0.1.0
+
