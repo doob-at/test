@@ -32,15 +32,15 @@ jobs:
           dotnet-version: '8.0.x'
 
       - name: Restore
-        run: dotnet restore test.sln
+        run: dotnet restore src/test.sln
 
       - name: Build
-        run: dotnet build test.sln -c Release --no-restore
+        run: dotnet build src/test.sln -c Release --no-restore
 
       - name: Pack
         run: |
           mkdir -p ${{ env.OUTPUT_DIR }}
-          dotnet pack test.sln -c Release --no-build \
+          dotnet pack src/test.sln -c Release --no-build \
             --output ${{ env.OUTPUT_DIR }}
 
       - name: Publish to GitHub Packages (only on release)
