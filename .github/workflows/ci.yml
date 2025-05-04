@@ -37,8 +37,7 @@ jobs:
         run: dotnet restore src/test.sln
 
       - name: Build
-        run: dotnet build src/test.sln -c Release --no-restore \
-          /p:Version=${{ steps.gitversion.outputs.fullSemVer }}
+        run: dotnet build src/test.sln -c Release --no-restore /p:Version=${{ steps.gitversion.outputs.fullSemVer }}
 
       - name: Test
         run: dotnet test src/test.sln -c Release --no-build
