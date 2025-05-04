@@ -31,14 +31,14 @@ jobs:
 
       - name: Display Version
         run: | 
-          echo "GitVersion: ${{ steps.gitversion.outputs.nuGetVersionV2 }}"
+          echo "GitVersion: ${{ steps.gitversion.outputs.fullSemVer }}"
 
       - name: Restore
         run: dotnet restore src/test.sln
 
       - name: Build
         run: dotnet build src/test.sln -c Release --no-restore \
-          /p:Version=${{ steps.gitversion.outputs.nuGetVersionV2 }}
+          /p:Version=${{ steps.gitversion.outputs.fullSemVer }}
 
       - name: Test
         run: dotnet test src/test.sln -c Release --no-build

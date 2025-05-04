@@ -39,14 +39,14 @@ jobs:
 
       - name: Build
         run: dotnet build src/test.sln -c Release --no-restore \
-          /p:Version=${{ steps.gitversion.outputs.nuGetVersionV2 }}
+          /p:Version=${{ steps.gitversion.outputs.fullSemVer }}
 
       - name: Pack
         run: |
           mkdir -p ${{ env.OUTPUT_DIR }}
           dotnet pack src/test.sln -c Release --no-build \
             --output ${{ env.OUTPUT_DIR }} \
-            /p:Version=${{ steps.gitversion.outputs.nuGetVersionV2 }}
+            /p:Version=${{ steps.gitversion.outputs.fullSemVer }}
 
       - name: Push to GitHub Packages
         run: |
