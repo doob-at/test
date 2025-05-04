@@ -28,3 +28,6 @@ ignore:
   sha: []
 
 commit-message-incrementing: Enabled
+
+next-version: 0.1.0  # Specifies the next semantic version of the project. Used as a starting point for versioning if no tags are found.
+
