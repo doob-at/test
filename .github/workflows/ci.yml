@@ -58,3 +58,7 @@ jobs:
           name: preview-packages
           path: ${{ env.OUTPUT_DIR }}/*.nupkg
           retention-days: 5
+
+      - name: Add summary link
+        if: github.event_name == 'pull_request'
+        run: echo "🔗 **Preview Package:** [Download](${{ steps.upload.outputs.artifact_url }})" >> $GITHUB_STEP_SUMMARY
