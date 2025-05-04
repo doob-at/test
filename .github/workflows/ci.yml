@@ -1,0 +1,62 @@
+name: Build & Publish
+
+on:
+  push:
+    branches: [main]
+  release:
+    types: [published]
+  workflow_dispatch:
+    inputs:
+      branch:
+        description: 'Branch to build'
+        required: false
+        default: 'main'
+
+env:
+  OUTPUT_DIR: output
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          ref: ${{ github.event.inputs.branch || github.ref }}
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+
+      - name: Restore
+        run: dotnet restore test.sln
+
+      - name: Build
+        run: dotnet build test.sln -c Release --no-restore
+
+      - name: Pack
+        run: |
+          mkdir -p ${{ env.OUTPUT_DIR }}
+          dotnet pack test.sln -c Release --no-build \
+            --output ${{ env.OUTPUT_DIR }}
+
+      - name: Publish to GitHub Packages (only on release)
+        if: github.event_name == 'release'
+        run: |
+          for pkg in ${{ env.OUTPUT_DIR }}/*.nupkg; do
+            echo "Publishing $pkg"
+            dotnet nuget push "$pkg" \
+              --source "https://nuget.pkg.github.com/${{ github.repository_owner }}/index.json" \
+              --api-key "${{ secrets.GITHUB_TOKEN }}" \
+              --skip-duplicate
+          done
+
+      - name: Upload preview artifacts
+        if: github.event_name != 'release'
+        uses: actions/upload-artifact@v4
+        with:
+          name: preview-packages
+          path: ${{ env.OUTPUT_DIR }}/*.nupkg
